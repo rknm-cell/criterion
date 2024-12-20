@@ -1,30 +1,19 @@
 import { serve } from "bun";
+import jwt from "jsonwebtoken";
+import express, { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+
+import films from "./database";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const PORT = 3055;
 
+console.log("films:", films)
 
-interface Film {
-    id: number;
-    title: string;
-    description: string;
-    picture: string;
-}
-
-let films: Film[] = [
-    {
-        id: 1,
-        title: "The Shawshank Redemption",
-        description: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
-        picture: "https://m.media-amazon.com/images/M/MV5BMDFkYTc0MGEtZmNhMC00ZDIzLWFmNTEtODM1ZmRlYWMwMWFmXkEyXkFqcGdeQXVyMTMxODU2OTc@._V1_.jpg"
-    }
-
-];
-console.log(films)
 
 function handleAllFilms() {
     return new Response(
-
-
         JSON.stringify(films), {
         headers: { "Content-Type": "application/json" }
     }
@@ -71,7 +60,7 @@ function HandleUpdateFilm(id: number, title: string, description: string, pictur
     }
 
     films[filmIndex] = {
-        ...film,
+        ...films[filmIndex],
         title,
         description,
         picture,
@@ -102,7 +91,8 @@ serve({
             const id = match && match?.[1];
 
             if (id) {
-                return handleFilmsById(id);
+                const filmId = Number(id)
+                return handleFilmsById(filmId);
             }
         }
 
@@ -120,13 +110,22 @@ serve({
             const id = match && match?.[1];
 
             if (id) {
+                const filmId = Number(id)
                 const editedFilm = await req.json();
+                return HandleUpdateFilm(filmId, editedFilm.title, editedFilm.description, editedFilm.picture);
 
             }
 
         }
+        if (method === 'DELETE' && pathname === '/api/films') {
+            const {id} = await req.json();
+            return handleDeleteFilm(id);
+           
+        }
 
         return new Response('Not Found', { status: 404 });
+
+        if (method === 'LOGIN')
     }
 }, console.log("Server started"));
 
