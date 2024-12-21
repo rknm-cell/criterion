@@ -1,16 +1,25 @@
 import { serve } from "bun";
 import jwt from "jsonwebtoken";
-import express, { Request, Response } from 'express';
+import express from 'express';
+import bodyParser from 'body-parser';
+import { generateToken, authenticateJWT } from './jwt';
+import { User } from './types';
+
 import bcrypt from 'bcryptjs';
 
 import films from "./database";
 import * as dotenv from "dotenv";
+import { data } from "autoprefixer";
 dotenv.config();
+const express = require('express');
 
+const app = express();
 const PORT = 3055;
+
 
 console.log("films:", films)
 
+let users: User[] = [];
 
 function handleAllFilms() {
     return new Response(
@@ -52,7 +61,7 @@ function handleCreateFilm(title: string, description: string, picture: string) {
 
 };
 
-function HandleUpdateFilm(id: number, title: string, description: string, picture: string) {
+function handleUpdateFilm(id: number, title: string, description: string, picture: string) {
     const filmIndex = films.findIndex((film) => film.id === id);
 
     if (filmIndex === -1) {
@@ -78,6 +87,57 @@ function handleDeleteFilm(id: number) {
     films.splice(filmIndex, 1);
     return new Response("Post deleted", { status: 200 });
 }
+app.use(express.json());
+
+// app.listen(PORT, () => {
+//     console.log("Server Listening on PORT:", PORT);
+//   });
+app.get("/status", (request, response) => {
+    const status = {
+        "Status": "Running"
+    };
+    
+    response.send(status);
+ });
+
+app.post('/signup', async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    if (users.find(user => user.email === email)) {
+        return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    users.push({ id: users.length + 1, email, password: hashedPassword });
+
+    res.status(201).json({ message: 'User created successfully' });
+});
+
+app.post('/login', async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+  
+    const user = users[email];
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+  
+    const token = generateToken(email);
+    res.json({ token });
+  });
+
 serve({
 
     port: PORT,
@@ -112,20 +172,22 @@ serve({
             if (id) {
                 const filmId = Number(id)
                 const editedFilm = await req.json();
-                return HandleUpdateFilm(filmId, editedFilm.title, editedFilm.description, editedFilm.picture);
+                return handleUpdateFilm(filmId, editedFilm.title, editedFilm.description, editedFilm.picture);
 
             }
 
         }
         if (method === 'DELETE' && pathname === '/api/films') {
-            const {id} = await req.json();
+            const { id } = await req.json();
             return handleDeleteFilm(id);
-           
+
         }
 
         return new Response('Not Found', { status: 404 });
 
-        if (method === 'LOGIN')
+        if (method === ''){
+
+        }
     }
 }, console.log("Server started"));
 
