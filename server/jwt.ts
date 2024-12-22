@@ -2,6 +2,12 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import express, { Request, Response, NextFunction } from 'express';
 import { User } from './types';
 
+declare module 'express-serve-static-core' {
+    interface Request {
+        user?: { id: string; email: string };
+    }
+}
+
 export const generateToken = (user: User): string => {
     return jwt.sign(
         { id: user.id, email: user.email },

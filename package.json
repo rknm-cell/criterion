@@ -9,12 +9,17 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "prisma": {
+    "seed": "node ./scripts/seed.js"
+  },
   "dependencies": {
+    "@prisma/client": "6.1.0",
     "@types/express": "^5.0.0",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
+    "elysia": "^1.1.26",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "postcss": "^8.4.49",
@@ -33,6 +38,7 @@
     "eslint": "^8.44.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.1",
+    "prisma": "^6.1.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.0"
   }
