@@ -1,5 +1,5 @@
 import { NotFoundError } from "elysia";
-import db from "../../db";
+import db from "../../libs";
 
 export async function getFilms() {
     try {
