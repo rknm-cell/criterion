@@ -1,5 +1,5 @@
 import {Elysia} from 'elysia';
-import  prisma  from '../libs/prisma';
+import  {prisma}  from '~libs/prisma';
 
 
 export const isAuthenticated = (app: Elysia) => app.derive(async ({cookie, jwt, set}) => {

@@ -1,9 +1,9 @@
 import { NotFoundError } from "elysia";
-import db from "../../libs";
+import {prisma} from "~libs/prisma";
 
 export async function getFilms() {
     try {
-        return await db.film.findMany({ orderBy: { createdAt: 'asc' } });
+        return await prisma.film.findMany({ orderBy: { createdAt: 'asc' } });
     } catch (e: unknown) {
         console.error(`Error getting films: ${e}`);
     }
@@ -11,7 +11,7 @@ export async function getFilms() {
 
 export async function getFilm(id: number) {
     try {
-        const film = await db.film.findUnique({ where: { id } });
+        const film = await prisma.film.findUnique({ where: { id } });
         if (!film) {
             throw new NotFoundError('Film not found');
         }
@@ -25,7 +25,7 @@ export async function getFilm(id: number) {
 export async function createFilm(options: { title: string, director: string, year: number, description: string, img: string }) {
     try {
         const { title, director, year, description, img } = options;
-        return await db.film.create({ data: { title, director, year, description, img } });
+        return await prisma.film.create({ data: { title, director, year, description, img } });
     } catch (e: unknown) {
         console.error(`Error creating film: ${e}`);
     }
@@ -34,7 +34,7 @@ export async function createFilm(options: { title: string, director: string, yea
 export async function updateFilm(id: number, options: { year?: number, description?: string, img?: string, title?: string, director?: string }) {
     try {
         const { title, director, year, description, img } = options;
-        return await db.film.update({
+        return await prisma.film.update({
             where: { id }, data: {
                 ...(title ? { title } : {}),
                 ...(director ? { director } : {}),
@@ -52,7 +52,7 @@ export async function deleteFilm(options: { id: number }) {
     try {
         const { id } = options;
 
-        return await db.film.delete({
+        return await prisma.film.delete({
             where: { id }
         });
     } catch (e: unknown) {

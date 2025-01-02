@@ -1,12 +1,12 @@
 import { Elysia, t } from 'elysia';
-import prisma from '../../libs/prisma';
-import { comparePassword, hashPassword, md5hash } from '../../utils/bcrypt';
-import { isAuthenticated } from '../../middlewares/auth'
+import {prisma} from '~libs/prisma';
+import { comparePassword, hashPassword } from '~utils/bcrypt';
+import { isAuthenticated } from '~middlewares/auth'
 
 export const auth = (app: Elysia) =>
     app.group('/auth', (app) =>
         app
-            .post("/signup", async ({ body, set }) => {
+            .post("/register", async ({ body, set }) => {
                 const { email, name, password } = body;
                 const emailExists = await prisma.user.findUnique({
                     where: {
@@ -28,7 +28,7 @@ export const auth = (app: Elysia) =>
 
                 }
                 const { hash, salt } = await hashPassword(password);
-                const emailHash = md5hash(email);
+                // const emailHash = md5hash(email);
                 
                 const newUser = await prisma.user.create(
                     {
@@ -39,6 +39,7 @@ export const auth = (app: Elysia) =>
                             salt,
                         },
                     });
+                    set.status = 201;
                 return {
                     success: true,
                     message: "Account created",
@@ -58,14 +59,15 @@ export const auth = (app: Elysia) =>
             )
             .post(
                 "/login",
+              
 
                 async ({ body, set, jwt, setCookie }) => {
-                    const { username, password } = body;
+                    const { email, password } = body;
 
                     //verify password
                     const user = await prisma.user.findFirst({
                         where: {
-                            email: username,
+                            email: email,
                         },
                         select: {
                             id: true,
@@ -73,24 +75,30 @@ export const auth = (app: Elysia) =>
                             salt: true,
                         },
                     });
+                    
                    if (!user) {
                     set.status = 400;
                     return {
                         success: false,
                         data: null,
-                        message: "Invalid credentials",
+                        message: "Invalid user",
                     };
                    } 
                    //verify password
                    const match = await comparePassword(password, user.salt, user.hash);
+                   console.log('Password:', password);
+                   console.log('Stored Hash:', user.hash);
+                   console.log('Stored Salt:', user.salt)
+                   console.log("Match", match)
                    if (!match) {
                     set.status = 400;
                     return {
                         success: false,
                         data: null,
-                        message: "Invalid credentials"
+                        message: "Invalid password"
                     };
                    }
+                   
 
                    // generate access and refresh token
 
@@ -118,10 +126,10 @@ export const auth = (app: Elysia) =>
                 },
                 {
                     body: t.Object({
-                        username: t.String(),
+                        email: t.String(),
                         password: t.String(),
                     }),
-                }
+                },
             )
             .use(isAuthenticated)
 
