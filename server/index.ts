@@ -10,7 +10,7 @@ import films from '~modules/films';
 const app = new Elysia();
 app
     .use(swagger())
-
+    .use(cookie())
     .group('/api', (app) =>
         app
             .use(
@@ -20,7 +20,7 @@ app
                 }),
 
             )
-            .use(cookie())
+            
             .use(auth)
             .use(films)
     )

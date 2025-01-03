@@ -1,67 +1,73 @@
 import { Elysia, t } from 'elysia';
-import {prisma} from '~libs/prisma';
+import { prisma } from '~libs/prisma';
 import { comparePassword, hashPassword } from '~utils/bcrypt';
 import { isAuthenticated } from '~middlewares/auth'
+
+
+
+
 
 export const auth = (app: Elysia) =>
     app.group('/auth', (app) =>
         app
-            .post("/register", async ({ body, set }) => {
-                const { email, name, password } = body;
-                const emailExists = await prisma.user.findUnique({
-                    where: {
-                        email,
-                    },
-                    select: {
-                        id: true,
-                    },
-
-                });
-                if (emailExists) {
-                    set.status = 400;
-                    return {
-                        success: false,
-                        data: null,
-                        message: "Email address alredy in use.",
-
-                    };
-
-                }
-                const { hash, salt } = await hashPassword(password);
-                // const emailHash = md5hash(email);
-                
-                const newUser = await prisma.user.create(
-                    {
-                        data: {
-                            name,
-                            email,
-                            hash,
-                            salt,
-                        },
-                    });
-                    set.status = 201;
-                return {
-                    success: true,
-                    message: "Account created",
-                    data: {
-                        user: newUser,
-                    },
-                };
-
-            },
+            .post("/register",
                 {
                     body: t.Object({
                         name: t.String(),
                         email: t.String(),
-                        password: t.String(),
-                    }),
+                        password: t.String()
+                    })
+                },
+
+                async ({ body, set }) => {
+                    const { email, name, password } = body;
+                    const emailExists = await prisma.user.findUnique({
+                        where: {
+                            email,
+                        },
+                        select: {
+                            id: true,
+                        },
+
+                    });
+                    if (emailExists) {
+                        set.status = 400;
+                        return {
+                            success: false,
+                            data: null,
+                            message: "Email address alredy in use.",
+
+                        };
+
+                    }
+                    const { hash, salt } = await hashPassword(password);
+                    // const emailHash = md5hash(email);
+
+                    const newUser = await prisma.user.create(
+                        {
+                            data: {
+                                name,
+                                email,
+                                hash,
+                                salt,
+                            },
+                        });
+                    set.status = 201;
+                    return {
+                        success: true,
+                        message: "Account created",
+                        data: {
+                            user: newUser,
+                        },
+                    };
+
                 }
             )
             .post(
                 "/login",
-              
 
-                async ({ body, set, jwt, setCookie }) => {
+
+                async ({ body, set, jwt, cookie: {accessToken, refreshToken } }) => {
                     const { email, password } = body;
 
                     //verify password
@@ -75,54 +81,54 @@ export const auth = (app: Elysia) =>
                             salt: true,
                         },
                     });
-                    
-                   if (!user) {
-                    set.status = 400;
+
+                    if (!user) {
+                        set.status = 400;
+                        return {
+                            success: false,
+                            data: null,
+                            message: "Invalid user",
+                        };
+                    }
+                    //verify password
+                    const match = await comparePassword(password, user.salt, user.hash);
+                    console.log('Password:', password);
+                    console.log('Stored Hash:', user.hash);
+                    console.log('Stored Salt:', user.salt)
+                    console.log("Match", match)
+                    if (!match) {
+                        set.status = 400;
+                        return {
+                            success: false,
+                            data: null,
+                            message: "Invalid password"
+                        };
+                    }
+
+
+                    // generate access and refresh token
+
+                    const accessToken = await jwt.sign({
+                        userId: user.id,
+                    });
+                    const refreshToken = await jwt.sign({
+                        userId: user.id,
+                    });
+
+                    setCookie("access_token", accessToken, {
+                        maxAge: 15 * 60,
+                        path: "/",
+                    });
+                    setCookie("refresh token", refreshToken, {
+                        maxAge: 86400 * 7,
+                        path: "/",
+                    });
+
                     return {
-                        success: false,
+                        success: true,
                         data: null,
-                        message: "Invalid user",
+                        message: "Account login successfully",
                     };
-                   } 
-                   //verify password
-                   const match = await comparePassword(password, user.salt, user.hash);
-                   console.log('Password:', password);
-                   console.log('Stored Hash:', user.hash);
-                   console.log('Stored Salt:', user.salt)
-                   console.log("Match", match)
-                   if (!match) {
-                    set.status = 400;
-                    return {
-                        success: false,
-                        data: null,
-                        message: "Invalid password"
-                    };
-                   }
-                   
-
-                   // generate access and refresh token
-
-                   const accessToken = await jwt.sign({
-                    userId: user.id,
-                   });
-                   const refreshToken = await jwt.sign({
-                    userId: user.id,
-                   });
-
-                   setCookie("access_token", accessToken, {
-                    maxAge: 15 * 60, 
-                    path: "/",
-                   });
-                   setCookie("refresh token", refreshToken, {
-                    maxAge: 86400 * 7,
-                    path: "/",
-                   });
-
-                   return {
-                    success: true,
-                    data: null,
-                    message: "Account login successfully",
-                   };
                 },
                 {
                     body: t.Object({
@@ -131,9 +137,27 @@ export const auth = (app: Elysia) =>
                     }),
                 },
             )
+            .post(
+                "/logout",
+                async ({ setCookie }) => {
+                    setCookie("access_token", "", {
+                        maxAge: -1,
+                        path: "/",
+                    });
+                    setCookie("refresh_token", "", {
+                        maxAge: -1,
+                        path: "/",
+                    })
+
+                    return {
+                        success: true,
+                        message: "Logged out successfully",
+                    }
+                }
+            )
             .use(isAuthenticated)
 
-            .get("/me", ({user}) => {
+            .get("/me", ({ user }) => {
                 return {
                     success: true,
                     message: "Fetch authenticated user details",
