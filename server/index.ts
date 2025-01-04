@@ -10,20 +10,21 @@ import films from '~modules/films';
 const app = new Elysia();
 app
     .use(swagger())
-    
-    .group('/api', (app) =>
-        app
-            .use(
-                jwt({
-                    name: 'jwt',
-                    secret: process.env.JWT_SECRET! || 'fake_secret'
-                }),
 
-            )
-            .use(cookie())
-            .use(auth)
-            .use(films)
+    .use(
+        jwt({
+            name: 'jwt',
+            secret: process.env.JWT_SECRET! || 'fake_secret'
+        }),
+
     )
+    .use(cookie())
+    
+    .group('/api', (app) =>{
+        app.use(auth);
+        app.use(films);
+        return app
+    })
     .listen(process.env.PORT || 3049);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

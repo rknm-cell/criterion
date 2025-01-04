@@ -3,14 +3,28 @@ import { prisma } from '~libs/prisma';
 import { comparePassword, hashPassword } from '~utils/bcrypt';
 import { isAuthenticated } from '~middlewares/auth'
 
+interface RegisterRequestBody {
+    name: string;
+    email: string;
+    password: string;
+}
 
+interface LoginRequestBody {
+    email: string;
+    password: string;
+}
+
+interface SetCookieOptions {
+    maxAge?: number;
+    path?: string;
+    httpOnly?: boolean;
+}
 
 
 
 export const auth = (app: Elysia) =>
     app.group('/auth', (app) =>
         app
-            
             .post("/register",
                 {
                     body: t.Object({
@@ -20,9 +34,9 @@ export const auth = (app: Elysia) =>
                     })
                 },
 
-                async ({ body, set }) => {
-                    const { email, name, password } = body;
-                    const emailExists = await prisma.user.findUnique({
+                async ({ body, set }: {body: RegisterRequestBody; set: any}) => {
+                    const { name, email, password } = body;
+                    const emailInUse = await prisma.user.findUnique({
                         where: {
                             email,
                         },
@@ -31,12 +45,11 @@ export const auth = (app: Elysia) =>
                         },
 
                     });
-                    if (emailExists) {
+                    if (emailInUse) {
                         set.status = 400;
                         return {
                             success: false,
-                            data: null,
-                            message: "Email address alredy in use.",
+                            message: "Email in use.",
 
                         };
 
@@ -68,7 +81,7 @@ export const auth = (app: Elysia) =>
                 "/login",
 
 
-                async ({ body, set, jwt, setCookie }) => {
+                async ({ body, set, jwt, setCookie }: { body: LoginRequestBody; set: any; jwt: any; setCookie: (name: string, value: string, options?: SetCookieOptions) => void }) => {
                     const { email, password } = body;
 
                     //verify password
@@ -105,25 +118,31 @@ export const auth = (app: Elysia) =>
                             message: "Invalid password"
                         };
                     }
-
+                    // Log to confirm setCookie is available
+                    if (typeof setCookie === 'function') {
+                        console.log('setCookie is available');
+                    } else {
+                        console.error('setCookie is not available');
+                    }
 
                     // generate access and refresh token
 
-                    const accessToken = await jwt.sign({
-                        userId: user.id,
-                    });
-                    const refreshToken = await jwt.sign({
-                        userId: user.id,
-                    });
+                    
+                    // const accessToken = await jwt.sign({
+                    //     userId: user.id,
+                    // });
+                    // const refreshToken = await jwt.sign({
+                    //     userId: user.id,
+                    // });
 
-                    setCookie("access_token", accessToken, {
-                        maxAge: 15 * 60,
-                        path: "/",
-                    });
-                    setCookie("refresh token", refreshToken, {
-                        maxAge: 86400 * 7,
-                        path: "/",
-                    });
+                    // setCookie("access_token", accessToken, {
+                    //     maxAge: 15 * 60,
+                    //     path: "/",
+                    // });
+                    // setCookie("refresh token", refreshToken, {
+                    //     maxAge: 86400 * 7,
+                    //     path: "/",
+                    // });
 
                     return {
                         success: true,
