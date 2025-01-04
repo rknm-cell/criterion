@@ -18,27 +18,33 @@ class Film {
     }
 }
 
-export const film = new Elysia()
+export const film = new Elysia({ prefix: '/film'})
     .decorate('film', new Film())
-    .get('/film', ({ film }) => film.data)
-    .put('/film', ({ film, body: { data } }) => film.add(data), {
+    .onTransform(function log({ body, params, path, request: {method} }) {
+        console.log(`${method} ${path}`, {
+            body,
+            params
+        })
+    })
+    .get('/', ({ film }) => film.data)
+    .put('/', ({ film, body: { data } }) => film.add(data), {
         body: t.Object({
             data: t.String()
         })
     })
+    .guard({
+        params: t.Object({
+            index: t.Number()
+        })
+    })
     .get(
-        '/film/:index',
+        '/:index',
         ({ film, params: { index }, error }) => {
             return film.data[index] ?? error(404, 'Not found')
-        },
-        {
-            params: t.Object({
-                index: t.Number()
-            })
         }
     )
     .delete(
-        '/film/:index',
+        '/:index',
         ({
             film,
             params: { index },
@@ -50,15 +56,10 @@ export const film = new Elysia()
         }) => {
             if (index in film.data) return film.remove(index)
             return error(422)
-        },
-        {
-            params: t.Object({
-                index: t.Number()
-            })
         }
     )
     .patch(
-        '/film/:index',
+        '/:index',
         ({
             film,
             params: { index },
@@ -76,9 +77,6 @@ export const film = new Elysia()
             return error(422)
         },
         {
-            params: t.Object({
-                index: t.Number()
-            }),
             body: t.Object({
                 data: t.String()
             })
