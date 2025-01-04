@@ -10,6 +10,7 @@ import { isAuthenticated } from '~middlewares/auth'
 export const auth = (app: Elysia) =>
     app.group('/auth', (app) =>
         app
+            
             .post("/register",
                 {
                     body: t.Object({
@@ -67,11 +68,11 @@ export const auth = (app: Elysia) =>
                 "/login",
 
 
-                async ({ body, set, jwt, cookie: {accessToken, refreshToken } }) => {
+                async ({ body, set, jwt, setCookie }) => {
                     const { email, password } = body;
 
                     //verify password
-                    const user = await prisma.user.findFirst({
+                    const user = await prisma.user.findUnique({
                         where: {
                             email: email,
                         },
