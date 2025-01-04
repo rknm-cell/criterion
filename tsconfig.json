@@ -5,18 +5,18 @@
       "bun": [
         "node_modules/bun/dist/index.js"
       ],
-      "~libs/*": [
-        "./server/libs/*"
-      ],
-      "~modules/*": [
-        "./server/modules/*"
-      ],
-      "~utils/*": [
-        "./server/utils/*"
-      ],
-      "~middlewares/*": [
-        "./server/middlewares/*"
-      ]
+      // "~libs/*": [
+      //   "./server/libs/*"
+      // ],
+      // "~modules/*": [
+      //   "./server/modules/*"
+      // ],
+      // "~utils/*": [
+      //   "./server/utils/*"
+      // ],
+      // "~middlewares/*": [
+      //   "./server/middlewares/*"
+      // ]
     },
     "target": "ES2020",
     "useDefineForClassFields": true,

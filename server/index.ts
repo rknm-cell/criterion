@@ -1,30 +1,38 @@
-import { Elysia } from 'elysia';
-import { jwt } from '@elysiajs/jwt';
-import { cookie } from '@elysiajs/cookie';
-import { swagger } from '@elysiajs/swagger';
-import { auth } from '~modules/auth';
-import films from '~modules/films';
+import { Elysia, t } from 'elysia';
+import { PrismaClient } from '@prisma/client'
+import {swagger} from '@elysiajs/swagger'
 
+import { film } from './routes/film'
 
+const db = new PrismaClient()
 
-const app = new Elysia();
-app
+const app = new Elysia()
     .use(swagger())
+    .use(film)
+    // .post(
+    //     '/register',
+    //     async ({ body }) => db.user.create({
+    //         data: body
+    //     }),
+    //     {
+    //         error({ code }) {
+    //             switch (code) {
+    //                 case 'P2002':
+    //                     return {
+    //                         error: 'Username must be unique'
+    //                     }
+    //             }
+    //         },
 
-    .use(
-        jwt({
-            name: 'jwt',
-            secret: process.env.JWT_SECRET! || 'fake_secret'
-        }),
-
-    )
-    .use(cookie())
-    
-    .group('/api', (app) =>{
-        app.use(auth);
-        app.use(films);
-        return app
-    })
-    .listen(process.env.PORT || 3049);
-
-console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+    //         body: t.Object({
+    //             email: t.String(),
+    //             password: t.String({
+    //                 minLength: 8
+    //             })
+    //         })
+    //     }
+    // )
+    .listen(3000)
+console.log(
+    `Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+)
