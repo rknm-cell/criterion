@@ -9,6 +9,10 @@ const db = new PrismaClient()
 
 const app = new Elysia()
     .use(swagger())
+    .onError(({error, code}) => {
+        if (code === 'NOT_FOUND')
+            return console.error(error)
+    })
     .use(user)
     .use(film)
     
