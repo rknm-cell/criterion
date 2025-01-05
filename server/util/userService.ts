@@ -55,9 +55,3 @@ export const getUserId = new Elysia()
     }))
     .as('plugin')
 
-export const user = new Elysia({ prefix: '/user'})
-    .use(getUserId)
-    .get('/profile', ({ email }) => ({
-        success: true,
-        email
-    }))
