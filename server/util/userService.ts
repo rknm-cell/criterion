@@ -1,4 +1,4 @@
-import {Elysia, t} from 'elysia'
+import { Elysia, t } from 'elysia'
 
 export const userService = new Elysia({ name: 'user/service' })
     .state({
@@ -7,8 +7,8 @@ export const userService = new Elysia({ name: 'user/service' })
     })
     .model({
         signIn: t.Object({
-            email: t.String({minLength: 1}),
-            password: t.String({minLength: 8})
+            email: t.String({ minLength: 1 }),
+            password: t.String({ minLength: 8 })
         }),
         session: t.Cookie(
             {
@@ -19,4 +19,26 @@ export const userService = new Elysia({ name: 'user/service' })
             }
         ),
         optionalSession: t.Optional(t.Ref('session'))
+    })
+    .macro({
+        isSignIn(enabled: boolean) {
+            if (!enabled) return
+
+            return {
+                beforeHandle({ error, cookie: { token }, store: { session } }) {
+                    if (!token.value)
+                        return error(401, {
+                            success: false,
+                            message: 'Unauthorized'
+                        })
+                    const username = session[token.value as unknown as number]
+
+                    if (!username)
+                        return error(401, {
+                            success: false,
+                            message: 'Unauthorized'
+                    })
+                }
+            }
+        }
     })
