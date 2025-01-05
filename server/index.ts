@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client'
 import {swagger} from '@elysiajs/swagger'
 
 import { film } from './routes/film'
+import { user } from './routes/user'
 
 const db = new PrismaClient()
 
 const app = new Elysia()
     .use(swagger())
+    .use(user)
     .use(film)
     
     .listen(3000)
