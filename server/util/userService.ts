@@ -31,9 +31,9 @@ export const userService = new Elysia({ name: 'user/service' })
                             success: false,
                             message: 'Unauthorized'
                         })
-                    const username = session[token.value as unknown as number]
+                    const email = session[token.value as unknown as number]
 
-                    if (!username)
+                    if (!email)
                         return error(401, {
                             success: false,
                             message: 'Unauthorized'
