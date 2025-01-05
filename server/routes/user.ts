@@ -77,17 +77,14 @@ export const user = new Elysia({ prefix: '/user' })
         ({ cookie: { token }, store: { session }, error }) => {
             const email = session[token.value]
 
-            if (!email)
-                return error(401, {
-                    success: false,
-                    message: 'Unauthorized'
-                })
+            
             return {
                 success: true,
                 email
             }
         },
         {
+            isSignIn: true,
             cookie: 'session'
         }
 
