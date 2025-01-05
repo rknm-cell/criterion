@@ -42,3 +42,22 @@ export const userService = new Elysia({ name: 'user/service' })
             }
         }
     })
+
+export const getUserId = new Elysia()
+    .use(userService)
+    .guard({
+        isSignIn: true,
+        cookie: 'session'
+    })
+    .resolve(
+        ({ store: {session}, cookie: {token} }) => ({
+        email: session[token.value]
+    }))
+    .as('plugin')
+
+export const user = new Elysia({ prefix: '/user'})
+    .use(getUserId)
+    .get('/profile', ({ email }) => ({
+        success: true,
+        email
+    }))
