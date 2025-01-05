@@ -1,9 +1,23 @@
 import { Elysia, t } from 'elysia';
+import {}
+
+const userFilm = t.Object({
+    data: t.String(),
+    user: t.String()
+})
+type UserFilm = typeof userFilm.static
 
 class Film {
-    constructor(public data: string[] = ['Moonhalo']) { }
+    constructor(
+        public data: UserFilm[] = [
+            {
+                data: 'Moonhalo',
+                user: 'saltyaom'
+            }
+        ]
+    ) { }
 
-    add(film: string) {
+    add(film: UserFilm) {
         this.data.push(film)
 
         return this.data
@@ -13,25 +27,29 @@ class Film {
         return this.data.splice(index, 1)
     }
 
-    update(index: number, film: string) {
-        return (this.data[index] = film)
+    update(index: number, film: Partial<UserFilm>) {
+        return (this.data[index] = { ...this.data[index], ...film })
     }
 }
 
-export const film = new Elysia({ prefix: '/film'})
+export const film = new Elysia({ prefix: '/film' })
     .decorate('film', new Film())
-    .onTransform(function log({ body, params, path, request: {method} }) {
+    .model({
+        userFilm: t.Omit(userFilm, ['user'])
+    })
+    .onTransform(function log({ body, params, path, request: { method } }) {
         console.log(`${method} ${path}`, {
             body,
             params
         })
     })
     .get('/', ({ film }) => film.data)
-    .put('/', ({ film, body: { data } }) => film.add(data), {
-        body: t.Object({
-            data: t.String()
-        })
-    })
+    .put('/', ({ film, body: { data }, email }) =>
+        film.add({ data, user: email }),
+        {
+            body: 'memo'
+        }
+    )
     .guard({
         params: t.Object({
             index: t.Number()
@@ -64,21 +82,15 @@ export const film = new Elysia({ prefix: '/film'})
             film,
             params: { index },
             body: { data },
-            error
-        }: {
-            film: Film;
-            params: { index: number };
-            body: { data: string };
-            error: (status: number) => any
+            error, email
         }) => {
 
-            if (index in film.data) return film.update(index, data)
+            if (index in film.data) 
+                return film.update(index, {data, user: email })
 
             return error(422)
         },
         {
-            body: t.Object({
-                data: t.String()
-            })
+            body: 'userFilm'
         }
     )
