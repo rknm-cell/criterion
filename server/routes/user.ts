@@ -1,9 +1,10 @@
-import { Elysia } from 'elysia'
+import { Elysia, t } from 'elysia'
 import {userService} from '../util/userService'
+import { PrismaClient } from '@prisma/client'
 
+const db = new PrismaClient()
 
-
-export const user = new Elysia({ prefix: '/user' })
+export const user = new Elysia({ prefix: '/auth' })
     .state({
         user: {} as Record<string, string>,
         session: {} as Record<number, string>
@@ -11,22 +12,49 @@ export const user = new Elysia({ prefix: '/user' })
     .use(userService)
     .put(
         '/register',
+        // async ({ body }) => db.user.create({
+        //     data: body
+        // }),
         async ({ body: { email, password }, store, error }) => {
-            if (store.user[email])
+            if (!email || !password) {
+                return error(400, {
+                    success: false,
+                    message: 'Email and password are required'
+                });
+            }
+
+            if (password.length < 8) {
+                return error(400, {
+                    success: false,
+                    message: 'Password must be at least 8 characters long'
+                });
+            }
+
+            if (store.user[email]) {
                 return error(400, {
                     success: false,
                     message: 'Email in use'
-                })
-            store.user[email] = await Bun.password.hash(password)
+                });
+            }
+
+            store.user[email] = await Bun.password.hash(password);
 
             return {
                 success: true,
                 message: 'User created'
-            }
+            };
         },
 
+        // {
+        //     body: 'signIn'
+        // }
         {
-            body: 'signIn'
+            body: t.Object({
+                email: t.String(),
+                password: t.String({
+                    minLength: 8
+                })
+            })
         }
     )
     .post(
