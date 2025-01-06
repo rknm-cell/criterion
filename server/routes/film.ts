@@ -49,7 +49,7 @@ export const film = new Elysia({ prefix: '/film' })
     .put('/', ({ film, body: { data }, email }) =>
         film.add({ data, user: email }),
         {
-            body: 'memo'
+            body: 'userFilm'
         }
     )
     .guard({

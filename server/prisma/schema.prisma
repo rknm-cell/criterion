@@ -15,8 +15,9 @@ datasource db {
 
 model Film {
   id Int @id @default(autoincrement())
-  name String
+  title String
   year Int
+  description String
   img String
 
 }
@@ -25,4 +26,5 @@ model User {
   id Int @id @default(autoincrement())
   email String @unique
   password String
+  createdAt DateTime @default(now())
 }

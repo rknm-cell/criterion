@@ -1,6 +1,7 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { opentelemetry } from '@elysiajs/opentelemetry'
 import { PrismaClient } from '@prisma/client'
-import {swagger} from '@elysiajs/swagger'
+import { swagger } from '@elysiajs/swagger'
 
 import { film } from './routes/film'
 import { user } from './routes/user'
@@ -8,14 +9,17 @@ import { user } from './routes/user'
 const db = new PrismaClient()
 
 const app = new Elysia()
+    .use(opentelemetry())
     .use(swagger())
-    .onError(({error, code}) => {
+    .onError(({ error, code }) => {
         if (code === 'NOT_FOUND')
-            return console.error(error)
+            return
+        'Not found'
+        console.error(error)
     })
     .use(user)
     .use(film)
-    
+
     .listen(3000)
 console.log(
     `Elysia is running at ${app.server?.hostname}:${app.server?.port}`
