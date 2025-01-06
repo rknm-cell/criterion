@@ -5,44 +5,30 @@ import { PrismaClient } from '@prisma/client'
 const db = new PrismaClient()
 
 export const user = new Elysia({ prefix: '/auth' })
-    .state({
-        user: {} as Record<string, string>,
-        session: {} as Record<number, string>
-    })
     .use(userService)
+    .onTransform(function log({ body, params, path, request: { method } }) {
+        console.log(`${method} ${path}`, {
+            body,
+            params
+        })
+    })
     .put(
         '/register',
         // async ({ body }) => db.user.create({
         //     data: body
         // }),
         async ({ body: { email, password }, store, error }) => {
-            if (!email || !password) {
-                return error(400, {
-                    success: false,
-                    message: 'Email and password are required'
-                });
-            }
-
-            if (password.length < 8) {
-                return error(400, {
-                    success: false,
-                    message: 'Password must be at least 8 characters long'
-                });
-            }
-
-            if (store.user[email]) {
+            if (store.user[email])
                 return error(400, {
                     success: false,
                     message: 'Email in use'
-                });
-            }
-
-            store.user[email] = await Bun.password.hash(password);
+                })
+            store.user[email] = await Bun.password.hash(password)
 
             return {
                 success: true,
                 message: 'User created'
-            };
+            }
         },
 
         // {
@@ -73,6 +59,7 @@ export const user = new Elysia({ prefix: '/auth' })
                     success: false,
                     message: 'Invalid email or password'
                 })
+
             const key = crypto.getRandomValues(new Uint32Array(1))[0]
             session[key] = email
             token.value = key
@@ -85,7 +72,7 @@ export const user = new Elysia({ prefix: '/auth' })
 
         {
             body: 'signIn',
-            cookie: 'session',
+            cookie: 'optionalSession',
         }
     )
     .get(
