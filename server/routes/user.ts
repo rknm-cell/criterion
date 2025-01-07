@@ -1,33 +1,43 @@
 import { Elysia, t } from 'elysia'
 import {userService} from '../util/userService'
+import { PrismaClient } from '@prisma/client'
+
+const db = new PrismaClient()
 
 
 
-export const user = new Elysia({ prefix: '/user' })
-    .state({
-        user: {} as Record<string, string>,
-        session: {} as Record<number, string>
-    })
+export const user = new Elysia({ prefix: '/auth' })
     .use(userService)
-    .put(
+    .model({
+        'user.sign': t.Object({
+            email: t.String(),
+            password: t.String({
+                minLength: 8
+            })
+        })
+    })
+    .onTransform(function log({ body, params, path, request: { method } }) {
+        console.log(`${method} ${path}`, {
+            body,
+            params
+        })
+    })
+    .post(
         '/register',
-        async ({ body: { email, password }, store, error }) => {
-            if (store.user[email])
-                return error(400, {
-                    success: false,
-                    message: 'Email in use'
-                })
-            store.user[email] = await Bun.password.hash(password)
-
-            return {
-                success: true,
-                message: 'User created'
-            }
-        },
-
+        async ({ body }) => db.user.create({
+            data: body
+        }),
         {
-            body: 'signIn'
-        }
+            error({ code }){
+                switch (code) {
+                    case 'P2002':
+                        return {
+                            error: 'Email must be unique'
+                        }
+                }
+            },
+            body: 'user.sign',
+        },
     )
     .post(
         '/login',
@@ -35,8 +45,10 @@ export const user = new Elysia({ prefix: '/user' })
             store: { user, session },
             error,
             body: { email, password },
-            cookie: { token }
+            cookie: {token}
         }) => {
+
+            console.log('async running')
             if (
                 !user[email] ||
                 !(await Bun.password.verify(password, user[email]))
@@ -45,10 +57,15 @@ export const user = new Elysia({ prefix: '/user' })
                     success: false,
                     message: 'Invalid email or password'
                 })
-            const key = crypto.getRandomValues(new Uint32Array(1))[0]
-            session[key] = email
-            token.value = key
 
+            const key = crypto.getRandomValues(new Uint32Array(1))[0]
+            console.log("Key: ", key)
+            session[key] = email
+            console.log("Session[key]: ", session[key])
+            token.value = key
+            console.log("Cookie token value: ", token.value)
+
+            
             return {
                 success: true,
                 message: `Signed in as ${email}`
@@ -57,7 +74,7 @@ export const user = new Elysia({ prefix: '/user' })
 
         {
             body: 'signIn',
-            cookie: 'session',
+            cookie: 'optionalSession',
         }
     )
     .get(

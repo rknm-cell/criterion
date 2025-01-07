@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import {}
+import {getUserId, userService} from '../util/userService'
 
 const userFilm = t.Object({
     data: t.String(),
@@ -32,7 +32,8 @@ class Film {
     }
 }
 
-export const film = new Elysia({ prefix: '/film' })
+export const film = new Elysia({ prefix: '/films' })
+    .use(userService)
     .decorate('film', new Film())
     .model({
         userFilm: t.Omit(userFilm, ['user'])
@@ -44,10 +45,11 @@ export const film = new Elysia({ prefix: '/film' })
         })
     })
     .get('/', ({ film }) => film.data)
+    .use(getUserId)
     .put('/', ({ film, body: { data }, email }) =>
         film.add({ data, user: email }),
         {
-            body: 'memo'
+            body: 'userFilm'
         }
     )
     .guard({

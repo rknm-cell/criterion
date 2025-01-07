@@ -15,7 +15,7 @@ export const userService = new Elysia({ name: 'user/service' })
                 token: t.Number()
             },
             {
-                secrets: process.env.JWT_SECRET
+                secrets: Bun.env.JWT_SECRET
             }
         ),
         optionalSession: t.Optional(t.Ref('session'))
@@ -37,7 +37,7 @@ export const userService = new Elysia({ name: 'user/service' })
                         return error(401, {
                             success: false,
                             message: 'Unauthorized'
-                    })
+                        })
                 }
             }
         }
@@ -50,8 +50,8 @@ export const getUserId = new Elysia()
         cookie: 'session'
     })
     .resolve(
-        ({ store: {session}, cookie: {token} }) => ({
-        email: session[token.value]
-    }))
+        ({ store: { session }, cookie: { token } }) => ({
+            email: session[token.value]
+        }))
     .as('plugin')
 
