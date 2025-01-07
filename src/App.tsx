@@ -6,11 +6,18 @@ import Browse from './components/Browse';
 import List from './components/List';
 import Home from './components/Home';
 import Settings from './components/Settings';
+import './App.css'
 
 const App = () => {
   return (
+    <div className="app-container">
+
     <BrowserRouter>
-      <Navbar />
+    <div className="navbar">
+
+    <Navbar />
+    </div>
+    <div className="content">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
@@ -18,7 +25,9 @@ const App = () => {
         <Route path="/list" element={<List />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
+    </div>
     </BrowserRouter>
+    </div>
   );
 };
 
