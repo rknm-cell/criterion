@@ -15,7 +15,7 @@ export const userService = new Elysia({ name: 'user/service' })
                 token: t.Number()
             },
             {
-                secrets: 'seia'
+                secrets: Bun.env.JWT_SECRET
             }
         ),
         optionalSession: t.Optional(t.Ref('session'))

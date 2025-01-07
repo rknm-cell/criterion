@@ -16,7 +16,6 @@ const app = new Elysia()
         'Not found'
         console.error(error)
     })
-    // .use(user)
     .use(user)
     .use(film)
 

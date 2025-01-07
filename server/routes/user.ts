@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client'
 
 const db = new PrismaClient()
 
+
+
 export const user = new Elysia({ prefix: '/auth' })
     .use(userService)
     .model({
@@ -43,8 +45,10 @@ export const user = new Elysia({ prefix: '/auth' })
             store: { user, session },
             error,
             body: { email, password },
-            cookie: { token }
+            cookie: {token}
         }) => {
+
+            console.log('async running')
             if (
                 !user[email] ||
                 !(await Bun.password.verify(password, user[email]))
@@ -55,9 +59,13 @@ export const user = new Elysia({ prefix: '/auth' })
                 })
 
             const key = crypto.getRandomValues(new Uint32Array(1))[0]
+            console.log("Key: ", key)
             session[key] = email
+            console.log("Session[key]: ", session[key])
             token.value = key
+            console.log("Cookie token value: ", token.value)
 
+            
             return {
                 success: true,
                 message: `Signed in as ${email}`

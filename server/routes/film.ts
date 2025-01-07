@@ -32,7 +32,7 @@ class Film {
     }
 }
 
-export const film = new Elysia({ prefix: '/film' })
+export const film = new Elysia({ prefix: '/films' })
     .use(userService)
     .decorate('film', new Film())
     .model({
