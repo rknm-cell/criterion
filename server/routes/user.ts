@@ -6,42 +6,36 @@ const db = new PrismaClient()
 
 export const user = new Elysia({ prefix: '/auth' })
     .use(userService)
+    .model({
+        'user.sign': t.Object({
+            email: t.String(),
+            password: t.String({
+                minLength: 8
+            })
+        })
+    })
     .onTransform(function log({ body, params, path, request: { method } }) {
         console.log(`${method} ${path}`, {
             body,
             params
         })
     })
-    .put(
+    .post(
         '/register',
-        // async ({ body }) => db.user.create({
-        //     data: body
-        // }),
-        async ({ body: { email, password }, store, error }) => {
-            if (store.user[email])
-                return error(400, {
-                    success: false,
-                    message: 'Email in use'
-                })
-            store.user[email] = await Bun.password.hash(password)
-
-            return {
-                success: true,
-                message: 'User created'
-            }
-        },
-
-        // {
-        //     body: 'signIn'
-        // }
+        async ({ body }) => db.user.create({
+            data: body
+        }),
         {
-            body: t.Object({
-                email: t.String(),
-                password: t.String({
-                    minLength: 8
-                })
-            })
-        }
+            error({ code }){
+                switch (code) {
+                    case 'P2002':
+                        return {
+                            error: 'Email must be unique'
+                        }
+                }
+            },
+            body: 'user.sign',
+        },
     )
     .post(
         '/login',
