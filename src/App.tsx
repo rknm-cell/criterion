@@ -20,14 +20,11 @@ const App = () => {
     <div className="app-container">
 
     <BrowserRouter>
-    <button onClick={handleNavbar} className="navbar-button"> 
-      {isNavbarVisible ? 'Hide' : 'Show'}
-    </button>
-    {isNavbarVisible && (
+    
     <div className="navbar">
     <Navbar />
     </div>
-    )}
+    
     <div className="content">
       <Routes>
         <Route path="/" element={<Home />} />
