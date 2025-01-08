@@ -1,0 +1,53 @@
+knm/Dev/Projects/Criterion/src/components/Browse.css */
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.carousel-inner {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-item {
+  min-width: 100%;
+  transition: transform 0.5s ease-in-out;
+  opacity: 0;
+  transform: translateX(100%);
+  display: none;
+}
+
+.carousel-item.active {
+  opacity: 1;
+  transform: translateX(0);
+  display: block;
+}
+
+.carousel img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.carousel-button.prev {
+  left: 10px;
+}
+
+.carousel-button.next {
+  right: 10px;
+}

@@ -1,9 +1,10 @@
 import React, {useState} from 'react'
+import './Browse.css'
 
 const images = [
-  'https://via.placeholder.com/800x400?text=Image+1',
-  'https://via.placeholder.com/800x400?text=Image+2',
-  'https://via.placeholder.com/800x400?text=Image+3'
+  'src/assets/banner_1.jpg',
+  'src/assets/banner_2.jpg',
+  'src/assets/banner_3.jpg'
 ];
 
 function Browse() {
@@ -23,12 +24,12 @@ function Browse() {
         &#10094;
       </button>
       <div className="carousel-inner">
-        {images.map((image, index) => (
+        
+      {images.map((image, index) => (
           <div
             key={index}
             className={`carousel-item ${index === currentIndex ? 'active' : ''}`}
           >
-            `Image {index}`
             <img src={image} alt={`Slide ${index}`} />
           </div>
         ))}
